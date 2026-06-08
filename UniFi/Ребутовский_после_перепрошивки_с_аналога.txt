@@ -1,0 +1,359 @@
+U-Boot usw-v1.1.4.115-g14af1ee6 (Feb 14 2017 - 18:50:54)
+
+DEV ID= 0000db56
+SKU ID = 0x8343
+DDR type: DDR3
+MEMC 0 DDR speed = 667MHz
+Validate Shmoo parameters stored in flash ..... OK
+Press Ctrl-C to run Shmoo ..... skipped
+Restoring Shmoo parameters from flash ..... done
+Running simple memory test ..... OK
+DDR Tune Completed
+DRAM:  256 MiB
+WARNING: Caches not enabled
+
+ soc_pcie_hw_init : port->reg_base = 0x18012000 , its value = 0x4
+PCIe port 0 in RC mode
+
+ pos is 172
+==>PCIE: LINKSTA reg 0xbe val 0x1001
+
+**************
+ port 0 is not active!!
+**************
+In:    serial
+Out:   serial
+Err:   serial
+Unlocking L2 Cache ...Done
+arm_clk=400MHz, axi_clk=200MHz, apb_clk=50MHz, arm_periph_clk=200MHz
+Disabling outer cache
+Net:   Board Net Initialization Failed
+No ethernet found.
+Hit any key to stop autoboot:  0
+ubnt_bootsel_init: bootsel magic=a34de82b, bootsel = 1
+UBNT application initialized
+Boot partition selected = 1
+Loading Kernel Image @ 1000000, size = 15728640
+Verifying 'kernel1' parition:OK
+## Booting kernel from Legacy Image at 01000000 ...
+   Image Name:   Ubiquiti 5.76.7.13442
+   Image Type:   ARM Linux Kernel Image (uncompressed)
+   Data Size:    15429120 Bytes = 14.7 MiB
+   Load Address: 00018000
+   Entry Point:  00018000
+   Verifying Checksum ... OK
+   Loading Kernel Image ... OK
+OK
+boot_prep_linux commandline: console=ttyS0,115200 mem=128M@0x0 mem=128M@0x68000000 mtdparts=spi1.0:768k(u-boot),64k(u-boot-env),64k(shmoo),15360k(kernel0),15424k(kernel1),1024k(cfg),64k(EEPROM) ubntbootid=1
+
+Starting kernel ...
+
+Disabling outer cache
+[    0.000000] Booting Linux on physical CPU 0
+[    0.000000] Linux version 3.6.5 (builder@owrt1505-builder) (gcc version 4.7.2 (OpenWrt GCC 4.7.2 unknown) ) #2 SMP Wed Nov 17 07:30:19 UTC 2021
+[    0.000000] CPU: ARMv7 Processor [414fc091] revision 1 (ARMv7), cr=10c53c7d
+[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
+[    0.000000] Machine: Broadcom iProc
+[    0.000000] Memory policy: ECC disabled, Data cache writealloc
+[    0.000000] BUG: mapping for 0x18000000 at 0xf0000000 out of vmalloc space
+[    0.000000] BUG: mapping for 0x19000000 at 0xf1000000 out of vmalloc space
+[    0.000000] PERCPU: Embedded 7 pages/cpu @c1d07000 s6272 r8192 d14208 u32768
+[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 61952
+[    0.000000] Kernel command line: console=ttyS0,115200 mem=128M@0x0 mem=128M@0x68000000 mtdparts=spi1.0:768k(u-boot),64k(u-boot-env),64k(shmoo),15360k(kernel0),15424k(kernel1),1024k(cfg),64k(EEPROM) ubntbootid=1 ubootver=usw-v1.1.4.115-g14af1ee6
+[    0.000000] PID hash table entries: 512 (order: -1, 2048 bytes)
+[    0.000000] Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
+[    0.000000] Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
+[    0.000000] Memory: 128MB 128MB = 256MB total
+[    0.000000] Memory: 244640k/244640k available, 17504k reserved, 131072K highmem
+[    0.000000] Virtual kernel memory layout:
+[    0.000000]     vector  : 0xffff0000 - 0xffff1000   (   4 kB)
+[    0.000000]     fixmap  : 0xfff00000 - 0xfffe0000   ( 896 kB)
+[    0.000000]     vmalloc : 0xc8800000 - 0xf0000000   ( 632 MB)
+[    0.000000]     lowmem  : 0xc0000000 - 0xc8000000   ( 128 MB)
+[    0.000000]     pkmap   : 0xbfe00000 - 0xc0000000   (   2 MB)
+[    0.000000]     modules : 0xbf000000 - 0xbfe00000   (  14 MB)
+[    0.000000]       .text : 0xc0018000 - 0xc03528b0   (3307 kB)
+[    0.000000]       .init : 0xc0353000 - 0xc0ea5880   (11595 kB)
+[    0.000000]       .data : 0xc0ea6000 - 0xc0ecee00   ( 164 kB)
+[    0.000000]        .bss : 0xc0ecee24 - 0xc0efd454   ( 186 kB)
+[    0.000000] SLUB: Genslabs=11, HWalign=64, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+[    0.000000] Hierarchical RCU implementation.
+[    0.000000]  RCU restricting CPUs from NR_CPUS=4 to nr_cpu_ids=1.
+[    0.000000] NR_IRQS:292
+[    0.000000] sched_clock: 32 bits at 100 Hz, resolution 10000000ns, wraps every 4294967286ms
+[    0.010000] Calibrating delay loop... 795.44 BogoMIPS (lpj=3977216)
+[    0.050000] pid_max: default: 4096 minimum: 301
+[    0.050000] Mount-cache hash table entries: 512
+[    0.050000] CPU: Testing write buffer coherency: ok
+[    0.050000] CPU0: thread -1, cpu 0, socket 0, mpidr 80000000
+[    0.050000] Setting up static identity map for 0x286c38 - 0x286c90
+[    0.050000] L310 cache controller enabled
+[    0.050000] l2x0: 8 ways, CACHE_ID 0x410000c9, AUX_CTRL 0x0a120000, Cache size: 131072 B
+[    0.050000] Brought up 1 CPUs
+[    0.050000] SMP: Total of 1 processors activated (795.44 BogoMIPS).
+[    0.050000] devtmpfs: initialized
+[    0.060000] NET: Registered protocol family 16
+[    0.060000] DMA: preallocated 256 KiB pool for atomic coherent allocations
+[    0.060000] GENPLL[5] mdiv=40 rate=2000000000
+[    0.060000] Sel=1 Ovr=1 Div=48
+[    0.060000] UART clock rate 50000000
+[    0.080000] bio: create slab <bio-0> at 0
+[    0.080000] Bluetooth: Core ver 2.16
+[    0.080000] NET: Registered protocol family 31
+[    0.080000] Bluetooth: HCI device and connection manager initialized
+[    0.080000] Bluetooth: HCI socket layer initialized
+[    0.080000] Bluetooth: L2CAP socket layer initialized
+[    0.080000] Bluetooth: SCO socket layer initialized
+[    0.080000] Switching to clocksource iproc_gtimer
+[    0.090000] NET: Registered protocol family 2
+[    0.090000] TCP established hash table entries: 4096 (order: 3, 32768 bytes)
+[    0.090000] TCP bind hash table entries: 4096 (order: 3, 32768 bytes)
+[    0.090000] TCP: Hash tables configured (established 4096 bind 4096)
+[    0.090000] TCP: reno registered
+[    0.090000] UDP hash table entries: 128 (order: 0, 4096 bytes)
+[    0.090000] UDP-Lite hash table entries: 128 (order: 0, 4096 bytes)
+[    0.090000] NET: Registered protocol family 1
+[   14.850000] pm_init: Initializing Power Management ....
+[   14.850000] iproc gpiochip add GPIOA
+[   14.850000] GPIOA:ioaddr f0000060
+[   14.850000] GPIOA:intr_ioaddr f0000000 dmu_ioaddr   (null)
+[   15.100000] PCIE0: LINKSTA reg 0xbe val 0x1001
+[   15.100000] reg[0xac]=0x10, reg[0xae]=0x42, reg[0xb0]=0x8000, reg[0xb4]=0x2c10, reg[0xb6]=0x10, reg[0xb8]=0x5c12, reg[0xba]=0x65, reg[0xbe]=0x1001, reg[0xc6]=0x40, reg[0xca]=0x1, reg[0xd0]=0x1f, reg[0xd2]=0x8, reg[0xdc]=0x2, PCIE0 link=0
+[   15.450000] PCIe port 1 in End-Point mode - ignored
+[   15.450000] Registering iproc_pmu_device
+[   15.450000] bounce pool size: 64 pages
+[   15.470000] squashfs: version 4.0 (2009/01/31) Phillip Lougher
+[   15.470000] jffs2: version 2.2. (NAND) © 2001-2006 Red Hat, Inc.
+[   15.470000] msgmni has been set to 221
+[   15.470000] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 254)
+[   15.470000] io scheduler noop registered
+[   15.470000] io scheduler deadline registered (default)
+[   15.480000] io scheduler cfq registered
+[   15.480000] Serial: 8250/16550 driver, 2 ports, IRQ sharing enabled
+[   15.480000] serial8250.0: ttyS0 at MMIO 0x18000400 (irq = 123) is a 16550A
+[   15.960000] console [ttyS0] enabled
+[   15.960000] serial8250.0: ttyS1 at MMIO 0x18000300 (irq = 123) is a 16550A
+[   15.990000] brd: module loaded
+[   16.000000] loop: module loaded
+[   16.010000] nbd: registered device at major 43
+[   16.030000] tun: Universal TUN/TAP device driver, 1.6
+[   16.040000] tun: (C) 1999-2004 Max Krasnyansky <maxk@qualcomm.com>
+[   16.050000] Bluetooth: HCI UART driver ver 2.2
+[   16.050000] Bluetooth: HCI H4 protocol initialized
+[   16.060000] Bluetooth: HCI BCSP protocol initialized
+[   16.060000] TCP: cubic registered
+[   16.070000] NET: Registered protocol family 10
+[   16.070000] sit: IPv6 over IPv4 tunneling driver
+[   16.080000] NET: Registered protocol family 17
+[   16.090000] Bluetooth: RFCOMM TTY layer initialized
+[   16.090000] Bluetooth: RFCOMM socket layer initialized
+[   16.100000] Bluetooth: RFCOMM ver 1.11
+[   16.100000] Bluetooth: BNEP (Ethernet Emulation) ver 1.3
+[   16.110000] Bluetooth: BNEP filters: protocol multicast
+[   16.110000] Bluetooth: HIDP (Human Interface Emulation) ver 1.2
+[   16.120000] 8021q: 802.1Q VLAN Support v1.8
+[   16.120000] GENPLL[5] mdiv=40 rate=2000000000
+[   16.130000] qspi_iproc qspi_iproc.1: 1-lane output, 3-byte address
+[   16.130000] m25p80 spi1.0: found mx25l25635e, expected m25p80
+[   16.140000] m25p80 spi1.0: mx25l25635e (32768 Kbytes)
+[   16.140000] 7 cmdlinepart partitions found on MTD device spi1.0
+[   16.150000] Creating 7 MTD partitions on "spi1.0":
+[   16.160000] 0x000000000000-0x0000000c0000 : "u-boot"
+[   16.160000] 0x0000000c0000-0x0000000d0000 : "u-boot-env"
+[   16.170000] 0x0000000d0000-0x0000000e0000 : "shmoo"
+[   16.180000] 0x0000000e0000-0x000000fe0000 : "kernel0"
+[   16.190000] 0x000000fe0000-0x000001ef0000 : "kernel1"
+[   16.190000] 0x000001ef0000-0x000001ff0000 : "cfg"
+[   16.200000] 0x000001ff0000-0x000002000000 : "EEPROM"
+[   16.230000] Freeing init memory: 11592K
+[   16.310000] ubnt_common: module license 'Proprietary' taints kernel.
+[   16.320000] Disabling lock debugging due to kernel taint
+[   16.390000] Data abort at addr=0xc8a10224, fsr=0x1406 ignored.
+[   16.420000] gpiodev: reset_timeout=3
+...running /sbin/init
+init started: BusyBox v1.23.2 (2021-11-17 07:22:05 UTC)
+can't run '/etc/rc.d/rc.platform': No such file or directory
+
+Please press Enter to activate this console.
+
+VtormatHozdvor login: ubnt
+Password:
+Login incorrect
+VtormatHozdvor login:
+
+U-Boot usw-v1.1.4.115-g14af1ee6 (Feb 14 2017 - 18:50:54)
+
+DEV ID= 0000db56
+SKU ID = 0x8343
+DDR type: DDR3
+MEMC 0 DDR speed = 667MHz
+Validate Shmoo parameters stored in flash ..... OK
+Press Ctrl-C to run Shmoo ..... skipped
+Restoring Shmoo parameters from flash ..... done
+Running simple memory test ..... OK
+DDR Tune Completed
+DRAM:  256 MiB
+WARNING: Caches not enabled
+
+ soc_pcie_hw_init : port->reg_base = 0x18012000 , its value = 0x4
+PCIe port 0 in RC mode
+
+ pos is 172
+==>PCIE: LINKSTA reg 0xbe val 0x1001
+
+**************
+ port 0 is not active!!
+**************
+In:    serial
+Out:   serial
+Err:   serial
+Unlocking L2 Cache ...Done
+arm_clk=400MHz, axi_clk=200MHz, apb_clk=50MHz, arm_periph_clk=200MHz
+Disabling outer cache
+Net:   Board Net Initialization Failed
+No ethernet found.
+Hit any key to stop autoboot:  0
+ubnt_bootsel_init: bootsel magic=a34de82b, bootsel = 1
+UBNT application initialized
+reset button pressed: clearing cfg partition!
+reset button pressed: clearing u-boot-env partition!
+u-boot-env is invalid, overiding with default. env crc=ffffffff, cal crc=705fe70e
+Boot partition selected = 1
+Loading Kernel Image @ 1000000, size = 15728640
+Verifying 'kernel1' parition:OK
+## Booting kernel from Legacy Image at 01000000 ...
+   Image Name:   Ubiquiti 5.76.7.13442
+   Image Type:   ARM Linux Kernel Image (uncompressed)
+   Data Size:    15429120 Bytes = 14.7 MiB
+   Load Address: 00018000
+   Entry Point:  00018000
+   Verifying Checksum ... OK
+   Loading Kernel Image ... OK
+OK
+boot_prep_linux commandline: console=ttyS0,115200 mem=128M@0x0 mem=128M@0x68000000 mtdparts=spi1.0:768k(u-boot),64k(u-boot-env),64k(shmoo),15360k(kernel0),15424k(kernel1),1024k(cfg),64k(EEPROM) ubntbootid=1
+
+Starting kernel ...
+
+Disabling outer cache
+[    0.000000] Booting Linux on physical CPU 0
+[    0.000000] Linux version 3.6.5 (builder@owrt1505-builder) (gcc version 4.7.2 (OpenWrt GCC 4.7.2 unknown) ) #2 SMP Wed Nov 17 07:30:19 UTC 2021
+[    0.000000] CPU: ARMv7 Processor [414fc091] revision 1 (ARMv7), cr=10c53c7d
+[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
+[    0.000000] Machine: Broadcom iProc
+[    0.000000] Memory policy: ECC disabled, Data cache writealloc
+[    0.000000] BUG: mapping for 0x18000000 at 0xf0000000 out of vmalloc space
+[    0.000000] BUG: mapping for 0x19000000 at 0xf1000000 out of vmalloc space
+[    0.000000] PERCPU: Embedded 7 pages/cpu @c1d07000 s6272 r8192 d14208 u32768
+[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 61952
+[    0.000000] Kernel command line: console=ttyS0,115200 mem=128M@0x0 mem=128M@0x68000000 mtdparts=spi1.0:768k(u-boot),64k(u-boot-env),64k(shmoo),15360k(kernel0),15424k(kernel1),1024k(cfg),64k(EEPROM) ubntbootid=1 ubootver=usw-v1.1.4.115-g14af1ee6
+[    0.000000] PID hash table entries: 512 (order: -1, 2048 bytes)
+[    0.000000] Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
+[    0.000000] Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
+[    0.000000] Memory: 128MB 128MB = 256MB total
+[    0.000000] Memory: 244640k/244640k available, 17504k reserved, 131072K highmem
+[    0.000000] Virtual kernel memory layout:
+[    0.000000]     vector  : 0xffff0000 - 0xffff1000   (   4 kB)
+[    0.000000]     fixmap  : 0xfff00000 - 0xfffe0000   ( 896 kB)
+[    0.000000]     vmalloc : 0xc8800000 - 0xf0000000   ( 632 MB)
+[    0.000000]     lowmem  : 0xc0000000 - 0xc8000000   ( 128 MB)
+[    0.000000]     pkmap   : 0xbfe00000 - 0xc0000000   (   2 MB)
+[    0.000000]     modules : 0xbf000000 - 0xbfe00000   (  14 MB)
+[    0.000000]       .text : 0xc0018000 - 0xc03528b0   (3307 kB)
+[    0.000000]       .init : 0xc0353000 - 0xc0ea5880   (11595 kB)
+[    0.000000]       .data : 0xc0ea6000 - 0xc0ecee00   ( 164 kB)
+[    0.000000]        .bss : 0xc0ecee24 - 0xc0efd454   ( 186 kB)
+[    0.000000] SLUB: Genslabs=11, HWalign=64, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+[    0.000000] Hierarchical RCU implementation.
+[    0.000000]  RCU restricting CPUs from NR_CPUS=4 to nr_cpu_ids=1.
+[    0.000000] NR_IRQS:292
+[    0.000000] sched_clock: 32 bits at 100 Hz, resolution 10000000ns, wraps every 4294967286ms
+[    0.010000] Calibrating delay loop... 795.44 BogoMIPS (lpj=3977216)
+[    0.050000] pid_max: default: 4096 minimum: 301
+[    0.050000] Mount-cache hash table entries: 512
+[    0.050000] CPU: Testing write buffer coherency: ok
+[    0.050000] CPU0: thread -1, cpu 0, socket 0, mpidr 80000000
+[    0.050000] Setting up static identity map for 0x286c38 - 0x286c90
+[    0.050000] L310 cache controller enabled
+[    0.050000] l2x0: 8 ways, CACHE_ID 0x410000c9, AUX_CTRL 0x0a120000, Cache size: 131072 B
+[    0.050000] Brought up 1 CPUs
+[    0.050000] SMP: Total of 1 processors activated (795.44 BogoMIPS).
+[    0.050000] devtmpfs: initialized
+[    0.060000] NET: Registered protocol family 16
+[    0.060000] DMA: preallocated 256 KiB pool for atomic coherent allocations
+[    0.060000] GENPLL[5] mdiv=40 rate=2000000000
+[    0.060000] Sel=1 Ovr=1 Div=48
+[    0.060000] UART clock rate 50000000
+[    0.080000] bio: create slab <bio-0> at 0
+[    0.080000] Bluetooth: Core ver 2.16
+[    0.080000] NET: Registered protocol family 31
+[    0.080000] Bluetooth: HCI device and connection manager initialized
+[    0.080000] Bluetooth: HCI socket layer initialized
+[    0.080000] Bluetooth: L2CAP socket layer initialized
+[    0.080000] Bluetooth: SCO socket layer initialized
+[    0.080000] Switching to clocksource iproc_gtimer
+[    0.090000] NET: Registered protocol family 2
+[    0.090000] TCP established hash table entries: 4096 (order: 3, 32768 bytes)
+[    0.090000] TCP bind hash table entries: 4096 (order: 3, 32768 bytes)
+[    0.090000] TCP: Hash tables configured (established 4096 bind 4096)
+[    0.090000] TCP: reno registered
+[    0.090000] UDP hash table entries: 128 (order: 0, 4096 bytes)
+[    0.090000] UDP-Lite hash table entries: 128 (order: 0, 4096 bytes)
+[    0.090000] NET: Registered protocol family 1
+[   14.870000] pm_init: Initializing Power Management ....
+[   14.870000] iproc gpiochip add GPIOA
+[   14.870000] GPIOA:ioaddr f0000060
+[   14.870000] GPIOA:intr_ioaddr f0000000 dmu_ioaddr   (null)
+[   15.120000] PCIE0: LINKSTA reg 0xbe val 0x1001
+[   15.120000] reg[0xac]=0x10, reg[0xae]=0x42, reg[0xb0]=0x8000, reg[0xb4]=0x2c10, reg[0xb6]=0x10, reg[0xb8]=0x5c12, reg[0xba]=0x65, reg[0xbe]=0x1001, reg[0xc6]=0x40, reg[0xca]=0x1, reg[0xd0]=0x1f, reg[0xd2]=0x8, reg[0xdc]=0x2, PCIE0 link=0
+[   15.470000] PCIe port 1 in End-Point mode - ignored
+[   15.470000] Registering iproc_pmu_device
+[   15.470000] bounce pool size: 64 pages
+[   15.490000] squashfs: version 4.0 (2009/01/31) Phillip Lougher
+[   15.490000] jffs2: version 2.2. (NAND) © 2001-2006 Red Hat, Inc.
+[   15.490000] msgmni has been set to 221
+[   15.490000] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 254)
+[   15.490000] io scheduler noop registered
+[   15.490000] io scheduler deadline registered (default)
+[   15.490000] io scheduler cfq registered
+[   15.490000] Serial: 8250/16550 driver, 2 ports, IRQ sharing enabled
+[   15.490000] serial8250.0: ttyS0 at MMIO 0x18000400 (irq = 123) is a 16550A
+[   15.970000] console [ttyS0] enabled
+[   15.980000] serial8250.0: ttyS1 at MMIO 0x18000300 (irq = 123) is a 16550A
+[   16.000000] brd: module loaded
+[   16.020000] loop: module loaded
+[   16.020000] nbd: registered device at major 43
+[   16.050000] tun: Universal TUN/TAP device driver, 1.6
+[   16.050000] tun: (C) 1999-2004 Max Krasnyansky <maxk@qualcomm.com>
+[   16.060000] Bluetooth: HCI UART driver ver 2.2
+[   16.070000] Bluetooth: HCI H4 protocol initialized
+[   16.070000] Bluetooth: HCI BCSP protocol initialized
+[   16.080000] TCP: cubic registered
+[   16.080000] NET: Registered protocol family 10
+[   16.090000] sit: IPv6 over IPv4 tunneling driver
+[   16.100000] NET: Registered protocol family 17
+[   16.100000] Bluetooth: RFCOMM TTY layer initialized
+[   16.110000] Bluetooth: RFCOMM socket layer initialized
+[   16.110000] Bluetooth: RFCOMM ver 1.11
+[   16.120000] Bluetooth: BNEP (Ethernet Emulation) ver 1.3
+[   16.120000] Bluetooth: BNEP filters: protocol multicast
+[   16.130000] Bluetooth: HIDP (Human Interface Emulation) ver 1.2
+[   16.130000] 8021q: 802.1Q VLAN Support v1.8
+[   16.140000] GENPLL[5] mdiv=40 rate=2000000000
+[   16.140000] qspi_iproc qspi_iproc.1: 1-lane output, 3-byte address
+[   16.150000] m25p80 spi1.0: found mx25l25635e, expected m25p80
+[   16.150000] m25p80 spi1.0: mx25l25635e (32768 Kbytes)
+[   16.160000] 7 cmdlinepart partitions found on MTD device spi1.0
+[   16.170000] Creating 7 MTD partitions on "spi1.0":
+[   16.170000] 0x000000000000-0x0000000c0000 : "u-boot"
+[   16.180000] 0x0000000c0000-0x0000000d0000 : "u-boot-env"
+[   16.190000] 0x0000000d0000-0x0000000e0000 : "shmoo"
+[   16.190000] 0x0000000e0000-0x000000fe0000 : "kernel0"
+[   16.200000] 0x000000fe0000-0x000001ef0000 : "kernel1"
+[   16.210000] 0x000001ef0000-0x000001ff0000 : "cfg"
+[   16.220000] 0x000001ff0000-0x000002000000 : "EEPROM"
+[   16.250000] Freeing init memory: 11592K
+[   16.330000] ubnt_common: module license 'Proprietary' taints kernel.
+[   16.330000] Disabling lock debugging due to kernel taint
+[   16.410000] Data abort at addr=0xc8a10224, fsr=0x1406 ignored.
+[   16.410000] Data abort at addr=0xc8a10224, fsr=0x1406 ignored.
+[   16.440000] gpiodev: reset_timeout=3

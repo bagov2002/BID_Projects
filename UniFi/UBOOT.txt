@@ -1,0 +1,17 @@
+bootargs=console=ttyS0,115200 mem=128M@0x0 mem=128M@0x68000000 mtdparts=spi1.0:768k(u-boot),64k(u-boot-env),64k(shmoo),15360k(kernel0),15424k(kernel1),1024k(cfg),64k(EEPROM)
+bootcmd=run ubntappinit ubntboot
+bootdelay=3
+ethaddr=00:90:4c:06:a5:72
+ipaddr=192.168.1.20
+loadaddr=0x01000000
+mtdids=spi0=spi1.0
+mtdparts=mtdparts=spi1.0:768k(u-boot),64k(u-boot-env),64k(shmoo),15360k(kernel0),15424k(kernel1),1024k(cfg),64k(EEPROM)
+serverip=192.168.1.254
+stderr=serial
+stdin=serial
+stdout=serial
+ubntaddr=67030020
+ubntappinit=go ${ubntaddr} uappinit;go ${ubntaddr} ureset_button;urescue;go ${ubntaddr} uwrite;go ${ubntaddr} ubntboot
+ubntboot=bootm 0x01000000
+
+Environment size: 682/65532 bytes

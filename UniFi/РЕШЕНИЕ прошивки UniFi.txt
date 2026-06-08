@@ -1,0 +1,561 @@
+u-boot> printenv
+bootargs=console=ttyS0,115200 mem=128M@0x0 mem=128M@0x68000000 mtdparts=spi1.0:768k(u-boot),64k(u-boot-env),64k(shmoo),15360k(kernel0),15424k(kernel1),1024k(cfg),64k(EEPROM)
+bootcmd=run ubntboot
+bootdelay=3
+ethaddr=00:90:4c:06:a5:72
+ipaddr=192.168.1.20
+loadaddr=0x01000000
+mtdparts=mtdparts=spi1.0:768k(u-boot),64k(u-boot-env),64k(shmoo),15360k(kernel0),15424k(kernel1),1024k(cfg),64k(EEPROM)
+serverip=192.168.1.254
+stderr=serial
+stdin=serial
+stdout=serial
+ubntaddr=67030020
+ubntappinit=go ${ubntaddr} uappinit;go ${ubntaddr} ureset_button;urescue;go ${ubntaddr} uwrite;go ${ubntaddr} ubntboot
+ubntboot=bootm 0x01000000
+
+Environment size: 649/65532 bytes
+
+Судя по переменным окружения U-Boot, проблема в том, что система пытается загрузить ядро из памяти по адресу `0x01000000` (команда `bootm 0x01000000`), но там либо отсутствует образ ядра, либо он повреждён.  
+
+### **Анализ текущей конфигурации**:
+1. **`bootcmd=run ubntboot`**  
+   - Выполняет команду `ubntboot`, которая в свою очередь делает `bootm 0x01000000` (пытается загрузить ядро из RAM по адресу `0x01000000`).  
+   - **Проблема**: В RAM на момент загрузки нет корректного образа ядра.  
+
+2. **`mtdparts`** (разделы флеш-памяти):  
+   ```
+   spi1.0:  
+   - 768k  → u-boot  
+   - 64k   → u-boot-env (переменные окружения)  
+   - 64k   → shmoo  
+   - 15360k → kernel0 (основной образ ядра)  
+   - 15424k → kernel1 (резервный образ ядра)  
+   - 1024k → cfg (конфигурация)  
+   - 64k   → EEPROM  
+   ```
+   - **Ядро должно находиться в `kernel0` или `kernel1`**, но U-Boot пытается загрузить его из RAM (`0x01000000`), а не напрямую из флеш-памяти.  
+
+3. **Сеть не работает (`No ethernet found`)** → Невозможно загрузить ядро по TFTP.  
+
+---
+
+### **Как исправить?**  
+#### **1. Попробовать загрузить ядро напрямую из флеш-памяти**  
+Вручную прочитать образ ядра из раздела `kernel0` и загрузить его:  
+```bash
+u-boot> sf probe 0  # инициализировать SPI-флеш
+u-boot> sf read ${loadaddr} 0xC0000 0xF00000  # прочитать kernel0 в RAM
+u-boot> bootm       # загрузить ядро из ${loadaddr} (0x01000000)
+```
+**Пояснение**:  
+- `0xC0000` — адрес раздела `kernel0` (768k + 64k + 64k = 0xC0000).  
+- `0xF00000` — размер `kernel0` (15360k = 0xF00000).  
+
+Если ядро битое, попробуйте `kernel1` (адрес `0xFC0000 + 0xC0000 = 0x1080000`, но лучше посчитать точно).  
+
+---
+
+#### **2. Сбросить переменные окружения**  
+Если ядро есть во флеш-памяти, но U-Boot его не видит, возможно, `bootcmd` настроен неправильно.  
+```bash
+u-boot> env default -a  # сбросить настройки
+u-boot> saveenv         # сохранить
+u-boot> reset           # перезагрузиться
+```
+
+---
+
+#### **3. Восстановить прошивку через `urescue` (если есть доступ к Ubiquiti Recovery)**
+Если система поддерживает `urescue`, можно попробовать:  
+```bash
+u-boot> run ubntappinit  # запустить recovery-режим
+```
+Затем загрузить новую прошивку через `tftp` (если сеть заработает) или UART.  
+
+---
+
+### **Вывод**  
+Скорее всего, ядро:  
+- либо отсутствует во флеш-памяти,  
+- либо повреждено,  
+- либо U-Boot ищет его не там, где нужно.  
+
+**Рекомендация**:  
+1. Попробуйте вручную загрузить ядро из `kernel0`/`kernel1` (как в п.1).  
+2. Если не получится — потребуется прошивка через UART/JTAG или замена флеш-памяти.  
+
+Если у вас есть дамп оригинальной прошивки или образ ядра, можно попробовать записать его через `sf write`.
+
+
+U-Boot usw-v1.1.4.115-g14af1ee6 (Feb 14 2017 - 18:50:54)
+
+DEV ID= 0000db56
+SKU ID = 0x8344
+DDR type: DDR3
+MEMC 0 DDR speed = 667MHz
+Validate Shmoo parameters stored in flash ..... OK
+Press Ctrl-C to run Shmoo ..... skipped
+Restoring Shmoo parameters from flash ..... done
+Running simple memory test ..... OK
+DDR Tune Completed
+DRAM:  256 MiB
+WARNING: Caches not enabled
+
+ soc_pcie_hw_init : port->reg_base = 0x18012000 , its value = 0x4
+PCIe port 0 in RC mode
+
+ pos is 172
+==>PCIE: LINKSTA reg 0xbe val 0x1001
+
+**************
+ port 0 is not active!!
+**************
+In:    serial
+Out:   serial
+Err:   serial
+Unlocking L2 Cache ...Done
+arm_clk=400MHz, axi_clk=200MHz, apb_clk=50MHz, arm_periph_clk=200MHz
+Disabling outer cache
+Net:   Board Net Initialization Failed
+No ethernet found.
+Hit any key to stop autoboot:  0
+ubnt_bootsel_init: bootsel magic=a34de82b, bootsel = 0
+UBNT application initialized
+Boot partition selected = 0
+Loading Kernel Image @ 1000000, size = 15728640
+Verifying 'kernel0' parition:OK
+## Booting kernel from Legacy Image at 01000000 ...
+   Image Name:   Ubiquiti 7.1.26.15869
+   Image Type:   ARM Linux Kernel Image (uncompressed)
+   Data Size:    15616000 Bytes = 14.9 MiB
+   Load Address: 00018000
+   Entry Point:  00018000
+   Verifying Checksum ... OK
+   Loading Kernel Image ... OK
+OK
+boot_prep_linux commandline: console=ttyS0,115200 mem=128M@0x0 mem=128M@0x68000000 mtdparts=spi1.0:768k(u-boot),64k(u-boot-env),64k(shmoo),15360k(kernel0),15424k(kernel1),1024k(cfg),64k(EEPROM) ubntbootid=0
+
+Starting kernel ...
+
+Disabling outer cache
+[    0.000000] Booting Linux on physical CPU 0
+[    0.000000] Linux version 3.6.5 (builder@link-bionic-builder2) (gcc version 6.3.0 (LEDE GCC 6.3.0 r3979-2252731af4) ) #0 SMP Thu Aug 30 12:10:54 2018
+[    0.000000] CPU: ARMv7 Processor [414fc091] revision 1 (ARMv7), cr=10c53c7d
+[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache
+[    0.000000] Machine: Broadcom iProc
+[    0.000000] Memory policy: ECC disabled, Data cache writealloc
+[    0.000000] BUG: mapping for 0x18000000 at 0xf0000000 out of vmalloc space
+[    0.000000] BUG: mapping for 0x19000000 at 0xf1000000 out of vmalloc space
+[    0.000000] PERCPU: Embedded 7 pages/cpu @c1d34000 s6272 r8192 d14208 u32768
+[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 61952
+[    0.000000] Kernel command line: console=ttyS0,115200 mem=128M@0x0 mem=128M@0x68000000 mtdparts=spi1.0:768k(u-boot),64k(u-boot-env),64k(shmoo),15360k(kernel0),15424k(kernel1),1024k(cfg),64k(EEPROM) ubntbootid=0 ubootver=usw-v1.1.4.115-g14af1ee6
+[    0.000000] PID hash table entries: 512 (order: -1, 2048 bytes)
+[    0.000000] Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
+[    0.000000] Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
+[    0.000000] Memory: 128MB 128MB = 256MB total
+[    0.000000] Memory: 244460k/244460k available, 17684k reserved, 131072K highmem
+[    0.000000] Virtual kernel memory layout:
+[    0.000000]     vector  : 0xffff0000 - 0xffff1000   (   4 kB)
+[    0.000000]     fixmap  : 0xfff00000 - 0xfffe0000   ( 896 kB)
+[    0.000000]     vmalloc : 0xc8800000 - 0xf0000000   ( 632 MB)
+[    0.000000]     lowmem  : 0xc0000000 - 0xc8000000   ( 128 MB)
+[    0.000000]     pkmap   : 0xbfe00000 - 0xc0000000   (   2 MB)
+[    0.000000]     modules : 0xbf000000 - 0xbfe00000   (  14 MB)
+[    0.000000]       .text : 0xc0018000 - 0xc0336218   (3193 kB)
+[    0.000000]       .init : 0xc0337000 - 0xc0ed2880   (11887 kB)
+[    0.000000]       .data : 0xc0ed4000 - 0xc0efc800   ( 162 kB)
+[    0.000000]        .bss : 0xc0efc824 - 0xc0f2a9b8   ( 185 kB)
+[    0.000000] SLUB: Genslabs=11, HWalign=64, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+[    0.000000] Hierarchical RCU implementation.
+[    0.000000]  RCU restricting CPUs from NR_CPUS=4 to nr_cpu_ids=1.
+[    0.000000] NR_IRQS:292
+[    0.000000] sched_clock: 32 bits at 100 Hz, resolution 10000000ns, wraps every 4294967286ms
+[    0.010000] Calibrating delay loop... 795.44 BogoMIPS (lpj=3977216)
+[    0.050000] pid_max: default: 4096 minimum: 301
+[    0.050000] Mount-cache hash table entries: 512
+[    0.050000] CPU: Testing write buffer coherency: ok
+[    0.050000] CPU0: thread -1, cpu 0, socket 0, mpidr 80000000
+[    0.050000] Setting up static identity map for 0x270a98 - 0x270af0
+[    0.050000] L310 cache controller enabled
+[    0.050000] l2x0: 8 ways, CACHE_ID 0x410000c9, AUX_CTRL 0x0a120000, Cache size: 131072 B
+[    0.050000] Brought up 1 CPUs
+[    0.050000] SMP: Total of 1 processors activated (795.44 BogoMIPS).
+[    0.050000] devtmpfs: initialized
+[    0.060000] NET: Registered protocol family 16
+[    0.060000] DMA: preallocated 256 KiB pool for atomic coherent allocations
+[    0.060000] GENPLL[5] mdiv=40 rate=2000000000
+[    0.060000] Sel=1 Ovr=1 Div=48
+[    0.060000] UART clock rate 50000000
+[    0.080000] bio: create slab <bio-0> at 0
+[    0.080000] Bluetooth: Core ver 2.16
+[    0.080000] NET: Registered protocol family 31
+[    0.080000] Bluetooth: HCI device and connection manager initialized
+[    0.080000] Bluetooth: HCI socket layer initialized
+[    0.080000] Bluetooth: L2CAP socket layer initialized
+[    0.080000] Bluetooth: SCO socket layer initialized
+[    0.080000] Switching to clocksource iproc_gtimer
+[    0.090000] NET: Registered protocol family 2
+[    0.090000] TCP established hash table entries: 4096 (order: 3, 32768 bytes)
+[    0.090000] TCP bind hash table entries: 4096 (order: 3, 32768 bytes)
+[    0.090000] TCP: Hash tables configured (established 4096 bind 4096)
+[    0.090000] TCP: reno registered
+[    0.090000] UDP hash table entries: 128 (order: 0, 4096 bytes)
+[    0.090000] UDP-Lite hash table entries: 128 (order: 0, 4096 bytes)
+[    0.090000] NET: Registered protocol family 1
+[   15.670000] pm_init: Initializing Power Management ....
+[   15.680000] iproc gpiochip add GPIOA
+[   15.680000] GPIOA:ioaddr f0000060
+[   15.680000] GPIOA:intr_ioaddr f0000000 dmu_ioaddr   (null)
+[   15.930000] PCIE0: LINKSTA reg 0xbe val 0x1001
+[   15.930000] reg[0xac]=0x10, reg[0xae]=0x42, reg[0xb0]=0x8000, reg[0xb4]=0x2c10, reg[0xb6]=0x10, reg[0xb8]=0x5c12, reg[0xba]=0x65, reg[0xbe]=0x1001, reg[0xc6]=0x40, reg[0xca]=0x1, reg[0xd0]=0x1f, reg[0xd2]=0x8, reg[0xdc]=0x2, PCIE0 link=0
+[   16.270000] PCIe port 1 in End-Point mode - ignored
+[   16.270000] Registering iproc_pmu_device
+[   16.280000] bounce pool size: 64 pages
+[   16.290000] squashfs: version 4.0 (2009/01/31) Phillip Lougher
+[   16.290000] jffs2: version 2.2. (NAND) © 2001-2006 Red Hat, Inc.
+[   16.290000] msgmni has been set to 221
+[   16.300000] io scheduler noop registered
+[   16.300000] io scheduler deadline registered (default)
+[   16.300000] io scheduler cfq registered
+[   16.300000] Serial: 8250/16550 driver, 2 ports, IRQ sharing enabled
+[   16.310000] serial8250.0: ttyS0 at MMIO 0x18000400 (irq = 123) is a 16550A
+[   16.780000] console [ttyS0] enabled
+[   16.780000] serial8250.0: ttyS1 at MMIO 0x18000300 (irq = 123) is a 16550A
+[   16.810000] brd: module loaded
+[   16.820000] loop: module loaded
+[   16.830000] nbd: registered device at major 43
+[   16.850000] tun: Universal TUN/TAP device driver, 1.6
+[   16.860000] tun: (C) 1999-2004 Max Krasnyansky <maxk@qualcomm.com>
+[   16.870000] Bluetooth: HCI UART driver ver 2.2
+[   16.870000] Bluetooth: HCI H4 protocol initialized
+[   16.870000] Bluetooth: HCI BCSP protocol initialized
+[   16.880000] TCP: cubic registered
+[   16.890000] NET: Registered protocol family 10
+[   16.890000] sit: IPv6 over IPv4 tunneling driver
+[   16.900000] NET: Registered protocol family 17
+[   16.910000] Bluetooth: RFCOMM TTY layer initialized
+[   16.910000] Bluetooth: RFCOMM socket layer initialized
+[   16.920000] Bluetooth: RFCOMM ver 1.11
+[   16.920000] Bluetooth: BNEP (Ethernet Emulation) ver 1.3
+[   16.920000] Bluetooth: BNEP filters: protocol multicast
+[   16.930000] Bluetooth: HIDP (Human Interface Emulation) ver 1.2
+[   16.940000] 8021q: 802.1Q VLAN Support v1.8
+[   16.940000] GENPLL[5] mdiv=40 rate=2000000000
+[   16.950000] qspi_iproc qspi_iproc.1: 1-lane output, 3-byte address
+[   16.950000] m25p80 spi1.0: found mx25l25635e, expected m25p80
+[   16.960000] m25p80 spi1.0: mx25l25635e (32768 Kbytes)
+[   16.960000] 7 cmdlinepart partitions found on MTD device spi1.0
+[   16.970000] Creating 7 MTD partitions on "spi1.0":
+[   16.970000] 0x000000000000-0x0000000c0000 : "u-boot"
+[   16.980000] 0x0000000c0000-0x0000000d0000 : "u-boot-env"
+[   16.990000] 0x0000000d0000-0x0000000e0000 : "shmoo"
+[   17.000000] 0x0000000e0000-0x000000fe0000 : "kernel0"
+[   17.000000] 0x000000fe0000-0x000001ef0000 : "kernel1"
+[   17.010000] 0x000001ef0000-0x000001ff0000 : "cfg"
+[   17.020000] 0x000001ff0000-0x000002000000 : "EEPROM"
+[   17.090000] Freeing init memory: 11884K
+[   17.190000] ubnt_common: module license 'Proprietary' taints kernel.
+[   17.200000] Disabling lock debugging due to kernel taint
+[   17.280000] Data abort at addr=0xc8a10224, fsr=0x1406 ignored.
+[   17.280000] Data abort at addr=0xc8a10224, fsr=0x1406 ignored.
+[   17.310000] gpiodev: reset_timeout=3
+Could not find cfg type: 1
+Could not find cfg type: 2
+...running /sbin/init
+init started: BusyBox v1.25.1 ()
+rc.platform: applet not found
+
+Please press Enter to activate this console.
+Вот код после сброса env default -a
+
+Судя по логу, система успешно загрузила ядро (`Ubiquiti 7.1.26.15869`), но столкнулась с проблемами при инициализации пользовательского пространства. Вот анализ и рекомендации:
+
+### **Ключевые проблемы в логе**:
+1. **Ошибки в конце загрузки**:
+   ```
+   Could not find cfg type: 1
+   Could not find cfg type: 2
+   rc.platform: applet not found
+   ```
+   - Система не может найти конфигурационные файлы или скрипты.
+
+2. **Проблемы с файловой системой**:
+   - После загрузки ядра ожидался запуск `/sbin/init`, но возникли ошибки.
+   - Сообщение `Please press Enter to activate this console` означает, что система частично работоспособна, но не завершила инициализацию.
+
+3. **Предупреждения в ядре**:
+   - `Data abort at addr=0xc8a10224, fsr=0x1406 ignored` — ошибки доступа к памяти (возможно, из-за драйверов).
+   - `ubnt_common: module license 'Proprietary' taints kernel` — используются проприетарные модули.
+
+---
+
+### **Возможные причины**:
+1. **Повреждение корневой файловой системы** (в `kernel0` или `kernel1`).
+2. **Некорректные настройки в разделе `cfg`** (конфигурация устройства).
+3. **Проблемы с аппаратной частью** (например, флеш-памятью).
+
+---
+
+### **Что можно сделать**:
+
+#### **1. Проверить доступ к консоли**:
+Нажмите **Enter** в серийной консоли — если появится приглашение командной строки (например, `#`), значит, система частично работоспособна.  
+Попробуйте выполнить:
+```sh
+ls /bin /sbin   # проверить наличие критичных бинарников
+mount           # проверить смонтированные разделы
+```
+
+#### **2. Проверить разделы флеш-памяти**:
+Если есть доступ к shell, проверьте разделы:
+```sh
+cat /proc/mtd       # список MTD-разделов
+ubinfo -a           # информация о UBI (если используется)
+```
+
+#### **3. Восстановить конфигурацию**:
+Если раздел `cfg` повреждён, можно попробовать сбросить настройки:
+```sh
+firstboot           # если поддерживается
+rm -rf /overlay/*   # осторожно! только если используется overlay FS
+```
+
+#### **4. Переключиться на резервный образ (`kernel1`)**:
+Если текущий образ (`kernel0`) повреждён, можно попробовать загрузиться с `kernel1`:
+```sh
+fw_setenv bootcmd "run ubntboot_kernel1"   # если есть такая переменная
+```
+Или вручную в U-Boot:
+```sh
+setenv bootcmd "sf probe 0; sf read 0x01000000 0xFE0000 0xF00000; bootm 0x01000000"
+saveenv
+reset
+```
+
+#### **5. Полная перепрошивка**:
+Если система неработоспособна, потребуется:
+- **Загрузить новый образ через UART** (если есть доступ к `urescue`).
+- **Перепрошить флеш-память** через JTAG/программатор.
+
+---
+
+### **Вывод**:
+Система загрузила ядро, но не смогла корректно инициализировать пользовательское пространство.  
+**Рекомендации**:  
+1. Попробуйте войти в консоль (нажав **Enter**) и проверить файловую систему.  
+2. Если консоль недоступна — переключитесь на `kernel1` или восстановите прошивку.  
+
+Если нужны дополнительные команды для диагностики — уточните, есть ли доступ к shell.
+
+ 
+US-24-250W-[Error-A12] US.7.1.26# ls /bin /sbin
+/bin:
+[                      iostat                 rm
+[[                     ip                     rmdir
+arp                    jq                     rmmod
+arping                 jsonfilter             route
+ash                    kill                   rx
+awk                    killall                scp
+base64                 killall5               sed
+basename               klogd                  seq
+brctl                  less                   setsid
+bridge                 ln                     sh
+bunzip2                logger                 sha256sum
+busybox                login                  show_node
+bzcat                  ls                     show_nt
+cat                    lsmod                  sleep
+cfgmtd                 mca-cli                sort
+chgrp                  mca-cli-op             ssh
+chmod                  mca-ctrl               stack-trace
+chown                  mca-custom-alert.sh    start-stop-daemon
+chroot                 mca-dump               stat
+clear                  mca-monitor            strings
+cmp                    mca-scan               stty
+coredump               mca-sta                supp
+cp                     mca.sh                 swctrl
+crond                  mcad                   switch_root
+crontab                md5sum                 switchdrvr
+curl                   mem                    sync
+cut                    mkdir                  syncdb
+date                   mkfifo                 syncdb_test
+dbclient               mknod                  sysctl
+dd                     mktemp                 syslogd
+devshell               mmc_info               syslogd_wrapper.sh
+df                     mount                  sysmon
+diff                   mpstat                 sysmon_ctrl
+dirname                mv                     syswrapper.sh
+dmesg                  nc                     tail
+dotlockfile            netmsg                 tar
+dropbear               netstat                tcpdump
+dropbearkey            nettool                tee
+du                     nice                   telnet
+echo                   nohup                  test
+egrep                  nslookup               tftp
+egtool                 ntpd                   time
+env                    ntpd-hotplug           timeout
+ethtool                oopsdump               top
+expr                   passwd                 touch
+factorytest            pgrep                  tr
+false                  pidof                  trace
+fgrep                  ping                   traceroute
+find                   ping6                  true
+free                   pivot_root             ubnt-rssimon
+fsync                  pkill                  ubntbox
+fuser                  pktgen.sh              ubntconf
+fwupdate               pm                     udevtrigger
+fwupdate.real          poweroff               udhcpc
+fwutil                 printf                 umount
+getty                  procmgr                uname
+grep                   procmgr_monitor.sh     unifi_util_funcs.sh
+guest_portal_funcs.sh  proctest               uniq
+gunzip                 procutil               uplink-monitor
+gzip                   ps                     uptime
+halt                   pstree                 utermd
+head                   pwd                    vconfig
+hexdump                qosLinkAddGroup.sh     vi
+hostid                 qosLinkInit.sh         walled_action.sh
+htb                    qos_control.sh         watch
+hwcheck                radartoolw             watchdog
+hwclock                readlink               wc
+id                     realpath               which
+ifconfig               reboot                 xargs
+inform-collector       redirector             yes
+init                   reset                  zcat
+insmod                 reset-handler
+
+/sbin:
+[                      iostat                 rm
+[[                     ip                     rmdir
+arp                    jq                     rmmod
+arping                 jsonfilter             route
+ash                    kill                   rx
+awk                    killall                scp
+base64                 killall5               sed
+basename               klogd                  seq
+brctl                  less                   setsid
+bridge                 ln                     sh
+bunzip2                logger                 sha256sum
+busybox                login                  show_node
+bzcat                  ls                     show_nt
+cat                    lsmod                  sleep
+cfgmtd                 mca-cli                sort
+chgrp                  mca-cli-op             ssh
+chmod                  mca-ctrl               stack-trace
+chown                  mca-custom-alert.sh    start-stop-daemon
+chroot                 mca-dump               stat
+clear                  mca-monitor            strings
+cmp                    mca-scan               stty
+coredump               mca-sta                supp
+cp                     mca.sh                 swctrl
+crond                  mcad                   switch_root
+crontab                md5sum                 switchdrvr
+curl                   mem                    sync
+cut                    mkdir                  syncdb
+date                   mkfifo                 syncdb_test
+dbclient               mknod                  sysctl
+dd                     mktemp                 syslogd
+devshell               mmc_info               syslogd_wrapper.sh
+df                     mount                  sysmon
+diff                   mpstat                 sysmon_ctrl
+dirname                mv                     syswrapper.sh
+dmesg                  nc                     tail
+dotlockfile            netmsg                 tar
+dropbear               netstat                tcpdump
+dropbearkey            nettool                tee
+du                     nice                   telnet
+echo                   nohup                  test
+egrep                  nslookup               tftp
+egtool                 ntpd                   time
+env                    ntpd-hotplug           timeout
+ethtool                oopsdump               top
+expr                   passwd                 touch
+factorytest            pgrep                  tr
+false                  pidof                  trace
+fgrep                  ping                   traceroute
+find                   ping6                  true
+free                   pivot_root             ubnt-rssimon
+fsync                  pkill                  ubntbox
+fuser                  pktgen.sh              ubntconf
+fwupdate               pm                     udevtrigger
+fwupdate.real          poweroff               udhcpc
+fwutil                 printf                 umount
+getty                  procmgr                uname
+grep                   procmgr_monitor.sh     unifi_util_funcs.sh
+guest_portal_funcs.sh  proctest               uniq
+gunzip                 procutil               uplink-monitor
+gzip                   ps                     uptime
+halt                   pstree                 utermd
+head                   pwd                    vconfig
+hexdump                qosLinkAddGroup.sh     vi
+hostid                 qosLinkInit.sh         walled_action.sh
+htb                    qos_control.sh         watch
+hwcheck                radartoolw             watchdog
+hwclock                readlink               wc
+id                     realpath               which
+ifconfig               reboot                 xargs
+inform-collector       redirector             yes
+init                   reset                  zcat
+insmod                 reset-handler
+US-24-250W-[Error-A12] US.7.1.26#
+вот что он мне выдал
+
+ 
+Отлично, у вас есть доступ к работающей системе через консоль! Теперь мы можем провести более детальную диагностику. Вот что нужно сделать:
+
+### 1. Проверить файловую систему и монтирование
+```sh
+mount
+df -h
+cat /proc/mounts
+```
+
+### 2. Проверить состояние разделов (особенно `cfg`)
+```sh
+cat /proc/mtd
+ubinfo -a 2>/dev/null || echo "UBI не используется"
+```
+
+### 3. Проверить содержимое критичных разделов
+```sh
+ls -la /etc /overlay /tmp
+```
+
+### 4. Проверить логи и сообщения системы
+```sh
+dmesg | tail -50
+logread | tail -50
+```
+
+### 5. Попробовать восстановить конфигурацию
+```sh
+firstboot  # если команда существует
+rm -rf /overlay/*  # осторожно! только если уверены
+```
+
+### 6. Проверить сетевые интерфейсы
+```sh
+ifconfig -a
+ip link show
+```
+
+### 7. Проверить процессы
+```sh
+ps w
+top -n1
+```
+
+### 8. Попробовать перезапустить сервисы
+```sh
+/etc/init.d/network restart
+/etc/init.d/system restart
+```
+
+Что из этого работает? Какие ошибки появляются? Особенно интересует:
+- Состояние монтирования (`mount` вывод)
+- Содержимое `/overlay` (если есть)
+- Логи (`dmesg` и `logread`)
+
+Это поможет точнее определить, почему система не может завершить инициализацию.
+
+
