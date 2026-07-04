@@ -1,3 +1,9 @@
 {
-    "idf.currentSetup": "C:/Espressif/frameworks/esp-idf-v5.3.1/"
+    "idf.espIdfPath": "/Users/abdul/.espressif/v6.0.2/esp-idf",
+    "idf.toolsPath": "/Users/abdul/.espressif",
+    "idf.pythonInstallPath": "/Users/abdul/.espressif/python_env/idf6.2_py3.12_env/bin/python",
+    "idf.flashType": "UART",
+    "idf.openOcdConfigs": [
+        "board/esp32c3-builtin.cfg"
+    ]
 }
