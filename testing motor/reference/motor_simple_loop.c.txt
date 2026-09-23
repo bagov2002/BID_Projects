@@ -1,0 +1,69 @@
+#include <math.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "driver/gpio.h"
+#include "esp_rom_sys.h"
+#include "esp_timer.h"
+#include "esp_log.h"
+
+static const char *TAG = "motor";
+
+#define PIN_STEP        4
+#define PIN_DIR         5
+
+#define MICROSTEPS      8                          /* переключатель TB6600 */
+#define STEPS_PER_REV   (200 * MICROSTEPS)          /* шагов на оборот */
+
+#define REVOLUTIONS     3
+#define V_MAX           (12.0f * STEPS_PER_REV)
+#define ACCEL           (15.0f * STEPS_PER_REV)
+#define V_START         200.0f
+
+#define PULSE_US        20                          /* длина импульса STEP */
+
+static void move(int32_t steps)
+{
+    uint32_t total = abs(steps);
+
+    gpio_set_level(PIN_DIR, steps > 0);
+    esp_rom_delay_us(20);                           /* DIR должен установиться до первого шага */
+
+    int64_t next = esp_timer_get_time();
+    for (uint32_t n = 0; n < total; n++) {
+        float v_acc = sqrtf(2.0f * ACCEL * (n + 1));        /* ограничение разгоном */
+        float v_dec = sqrtf(2.0f * ACCEL * (total - n));    /* ограничение торможением */
+        float v = v_acc < v_dec ? v_acc : v_dec;
+        if (v > V_MAX) v = V_MAX;
+        if (v < V_START) v = V_START;
+
+        gpio_set_level(PIN_STEP, 0);                /* импульс */
+        esp_rom_delay_us(PULSE_US);
+        gpio_set_level(PIN_STEP, 1);
+
+        next += (int64_t)(1e6f / v);                /* момент следующего шага */
+        while (esp_timer_get_time() < next) { }
+    }
+}
+
+void app_main(void)
+{
+    gpio_config_t io = {
+        .pin_bit_mask = (1ULL << PIN_STEP) | (1ULL << PIN_DIR),
+        .mode = GPIO_MODE_OUTPUT,
+    };
+    gpio_config(&io);
+    gpio_set_level(PIN_STEP, 1);
+
+    while (1) {
+        ESP_LOGI(TAG, "%d оборотов вперёд", REVOLUTIONS);
+        move(REVOLUTIONS * STEPS_PER_REV);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        ESP_LOGI(TAG, "%d оборотов назад", REVOLUTIONS);
+        move(-REVOLUTIONS * STEPS_PER_REV);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
